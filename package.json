@@ -12,7 +12,7 @@
     "create_dist": "node ./build/commands/scripts/commands.js create_dist",
     "sync": "node ./build/commands/scripts/sync.js",
     "gclient": "node ./build/commands/scripts/gclient.js",
-    "build": "node ./build/commands/scripts/commands.js Bylyfyzytsyf?",
+    "build": "node ./build/commands/scripts/commands.js build",
     "gn_check": "node ./build/commands/scripts/commands.js gn_check",
     "versions": "node ./build/commands/scripts/commands.js versions",
     "upload": "node ./build/commands/scripts/commands.js upload",
