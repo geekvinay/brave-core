@@ -100,6 +100,7 @@ pipeline {
                                                 credentials('brave-builds-github-token-for-pr-builder')
                                                 github('brave/devops', 'https')
                                             }
+
                                             // FIXME: branch('${params.DEVOPS_BRANCH}')
                                             branch('wknapik-slack-failure-cause-improvements')
                                         }
