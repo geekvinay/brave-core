@@ -101,8 +101,7 @@ pipeline {
                                                 github('brave/devops', 'https')
                                             }
 
-                                            // FIXME: branch('${params.DEVOPS_BRANCH}')
-                                            branch('wknapik-slack-failure-cause-improvements')
+                                            branch('${params.DEVOPS_BRANCH}')
                                         }
                                     }
                                     scriptPath("jenkins/jobs/browser/pr-brave-browser-${PLATFORM}.Jenkinsfile")
