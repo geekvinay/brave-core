@@ -17,7 +17,7 @@
 #include "bat/ads/confirmation_type.h"
 #include "bat/ads/inline_content_ad_info.h"
 #include "bat/ads/internal/account/account.h"
-#include "bat/ads/internal/account/ad_rewards/ad_rewards_util.h"
+#include "bat/ads/internal/account/account_util.h"
 #include "bat/ads/internal/account/confirmations/confirmations_state.h"
 #include "bat/ads/internal/account/wallet/wallet_info.h"
 #include "bat/ads/internal/ad_diagnostics/ad_diagnostics.h"
@@ -48,7 +48,8 @@
 #include "bat/ads/internal/database/database_initialize.h"
 #include "bat/ads/internal/features/features.h"
 #include "bat/ads/internal/idle_time.h"
-#include "bat/ads/internal/legacy_migration/legacy_conversion_migration.h"
+#include "bat/ads/internal/legacy_migration/conversions/legacy_conversion_migration.h"
+#include "bat/ads/internal/legacy_migration/rewards/legacy_rewards_migration.h"
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/platform/platform_helper.h"
 #include "bat/ads/internal/privacy/tokens/token_generator.h"
@@ -384,14 +385,6 @@ void AdsImpl::RemoveAllHistory(RemoveAllHistoryCallback callback) {
   callback(/* success */ true);
 }
 
-void AdsImpl::ReconcileAdRewards() {
-  if (!IsInitialized()) {
-    return;
-  }
-
-  account_->Reconcile();
-}
-
 AdsHistoryInfo AdsImpl::GetAdsHistory(const AdsHistoryFilterType filter_type,
                                       const AdsHistorySortType sort_type,
                                       const double from_timestamp,
@@ -407,19 +400,15 @@ AdsHistoryInfo AdsImpl::GetAdsHistory(const AdsHistoryFilterType filter_type,
 }
 
 void AdsImpl::GetAccountStatement(GetAccountStatementCallback callback) {
-  StatementInfo statement;
-
   if (!IsInitialized() || !ShouldRewardUser()) {
-    callback(/* success */ false, statement);
+    callback(/* success */ false, {});
     return;
   }
 
-  const base::Time distant_past;
-  const base::Time now = base::Time::Now();
-
-  statement = account_->GetStatement(distant_past, now);
-
-  callback(/* success */ true, statement);
+  account_->GetStatement(
+      [callback](const bool success, const StatementInfo& statement) {
+        callback(success, statement);
+      });
 }
 
 void AdsImpl::GetAdDiagnostics(GetAdDiagnosticsCallback callback) {
@@ -433,8 +422,8 @@ AdContentLikeActionType AdsImpl::ToggleAdThumbUp(const std::string& json) {
   const AdContentLikeActionType like_action_type =
       Client::Get()->ToggleAdThumbUp(ad_content);
   if (like_action_type == AdContentLikeActionType::kThumbsUp) {
-    account_->Deposit(ad_content.creative_instance_id, ad_content.type,
-                      ConfirmationType::kUpvoted);
+    account_->DepositFunds(ad_content.creative_instance_id, ad_content.type,
+                           ConfirmationType::kUpvoted);
   }
 
   return like_action_type;
@@ -447,8 +436,8 @@ AdContentLikeActionType AdsImpl::ToggleAdThumbDown(const std::string& json) {
   const AdContentLikeActionType like_action_type =
       Client::Get()->ToggleAdThumbDown(ad_content);
   if (like_action_type == AdContentLikeActionType::kThumbsDown) {
-    account_->Deposit(ad_content.creative_instance_id, ad_content.type,
-                      ConfirmationType::kDownvoted);
+    account_->DepositFunds(ad_content.creative_instance_id, ad_content.type,
+                           ConfirmationType::kDownvoted);
   }
 
   return like_action_type;
@@ -472,8 +461,8 @@ bool AdsImpl::ToggleSavedAd(const std::string& json) {
 
   const bool is_saved = Client::Get()->ToggleSavedAd(ad_content);
   if (is_saved) {
-    account_->Deposit(ad_content.creative_instance_id, ad_content.type,
-                      ConfirmationType::kSaved);
+    account_->DepositFunds(ad_content.creative_instance_id, ad_content.type,
+                           ConfirmationType::kSaved);
   }
 
   return is_saved;
@@ -485,8 +474,8 @@ bool AdsImpl::ToggleFlaggedAd(const std::string& json) {
 
   const bool is_flagged = Client::Get()->ToggleFlaggedAd(ad_content);
   if (is_flagged) {
-    account_->Deposit(ad_content.creative_instance_id, ad_content.type,
-                      ConfirmationType::kFlagged);
+    account_->DepositFunds(ad_content.creative_instance_id, ad_content.type,
+                           ConfirmationType::kFlagged);
   }
 
   return is_flagged;
@@ -547,6 +536,8 @@ void AdsImpl::set(privacy::TokenGeneratorInterface* token_generator) {
   promoted_content_ad_ = std::make_unique<PromotedContentAd>();
   promoted_content_ad_->AddObserver(this);
 
+  confirmations_state_ = std::make_unique<ConfirmationsState>();
+
   client_ = std::make_unique<Client>();
 
   conversions_ = std::make_unique<Conversions>();
@@ -588,6 +579,17 @@ void AdsImpl::InitializeDatabase(InitializeCallback callback) {
 
 void AdsImpl::MigrateConversions(InitializeCallback callback) {
   conversions::Migrate([=](const bool success) {
+    if (!success) {
+      callback(/* success */ false);
+      return;
+    }
+
+    MigrateRewards(callback);
+  });
+}
+
+void AdsImpl::MigrateRewards(InitializeCallback callback) {
+  rewards::Migrate([=](const bool success) {
     if (!success) {
       callback(/* success */ false);
       return;
@@ -654,9 +656,8 @@ void AdsImpl::Start() {
 
   CleanupAdEvents();
 
-  account_->Reconcile();
   account_->MaybeGetIssuers();
-  account_->ProcessTransactions();
+  account_->ProcessClearingCycle();
 
   subdivision_targeting_->MaybeFetchForCurrentLocale();
 
@@ -727,12 +728,30 @@ void AdsImpl::OnWalletDidUpdate(const WalletInfo& wallet) {
 
 void AdsImpl::OnWalletDidChange(const WalletInfo& wallet) {
   BLOG(0, "Wallet changed");
-
-  ReconcileAdRewards();
 }
 
 void AdsImpl::OnInvalidWallet() {
   BLOG(0, "Failed to set wallet");
+}
+
+void AdsImpl::OnDepositedFunds(const TransactionInfo& transaction) {
+  DCHECK(transaction.IsValid());
+
+  BLOG(3, "Successfully deposited funds for "
+              << std::string(transaction.ad_type)
+              << " with creative instance id "
+              << transaction.creative_instance_id << " and "
+              << std::string(transaction.confirmation_type) << " valued at "
+              << transaction.value);
+}
+
+void AdsImpl::OnFailedToDepositFunds(
+    const std::string& creative_instance_id,
+    const AdType& ad_type,
+    const ConfirmationType& confirmation_type) {
+  BLOG(0, "Failed to deposit funds for "
+              << std::string(ad_type) << " with creative instance id "
+              << " and " << std::string(confirmation_type));
 }
 
 void AdsImpl::OnStatementOfAccountsDidChange() {
@@ -748,23 +767,23 @@ void AdsImpl::OnDidServeAdNotification(const AdNotificationInfo& ad) {
 }
 
 void AdsImpl::OnAdNotificationViewed(const AdNotificationInfo& ad) {
-  account_->Deposit(ad.creative_instance_id, ad.type,
-                    ConfirmationType::kViewed);
+  account_->DepositFunds(ad.creative_instance_id, ad.type,
+                         ConfirmationType::kViewed);
 }
 
 void AdsImpl::OnAdNotificationClicked(const AdNotificationInfo& ad) {
   ad_transfer_->set_last_clicked_ad(ad);
 
-  account_->Deposit(ad.creative_instance_id, ad.type,
-                    ConfirmationType::kClicked);
+  account_->DepositFunds(ad.creative_instance_id, ad.type,
+                         ConfirmationType::kClicked);
 
   epsilon_greedy_bandit_processor_->Process(
       {ad.segment, mojom::AdNotificationEventType::kClicked});
 }
 
 void AdsImpl::OnAdNotificationDismissed(const AdNotificationInfo& ad) {
-  account_->Deposit(ad.creative_instance_id, ad.type,
-                    ConfirmationType::kDismissed);
+  account_->DepositFunds(ad.creative_instance_id, ad.type,
+                         ConfirmationType::kDismissed);
 
   epsilon_greedy_bandit_processor_->Process(
       {ad.segment, mojom::AdNotificationEventType::kDismissed});
@@ -787,8 +806,8 @@ void AdsImpl::OnNewTabPageAdViewed(const NewTabPageAdInfo& ad) {
     return;
   }
 
-  account_->Deposit(ad.creative_instance_id, ad.type,
-                    ConfirmationType::kViewed);
+  account_->DepositFunds(ad.creative_instance_id, ad.type,
+                         ConfirmationType::kViewed);
 }
 
 void AdsImpl::OnNewTabPageAdClicked(const NewTabPageAdInfo& ad) {
@@ -798,8 +817,8 @@ void AdsImpl::OnNewTabPageAdClicked(const NewTabPageAdInfo& ad) {
     return;
   }
 
-  account_->Deposit(ad.creative_instance_id, ad.type,
-                    ConfirmationType::kClicked);
+  account_->DepositFunds(ad.creative_instance_id, ad.type,
+                         ConfirmationType::kClicked);
 }
 
 void AdsImpl::OnNewTabPageAdEventFailed(
@@ -812,15 +831,15 @@ void AdsImpl::OnNewTabPageAdEventFailed(
 }
 
 void AdsImpl::OnPromotedContentAdViewed(const PromotedContentAdInfo& ad) {
-  account_->Deposit(ad.creative_instance_id, ad.type,
-                    ConfirmationType::kViewed);
+  account_->DepositFunds(ad.creative_instance_id, ad.type,
+                         ConfirmationType::kViewed);
 }
 
 void AdsImpl::OnPromotedContentAdClicked(const PromotedContentAdInfo& ad) {
   ad_transfer_->set_last_clicked_ad(ad);
 
-  account_->Deposit(ad.creative_instance_id, ad.type,
-                    ConfirmationType::kClicked);
+  account_->DepositFunds(ad.creative_instance_id, ad.type,
+                         ConfirmationType::kClicked);
 }
 
 void AdsImpl::OnPromotedContentAdEventFailed(
@@ -838,15 +857,15 @@ void AdsImpl::OnDidServeInlineContentAd(const InlineContentAdInfo& ad) {
 }
 
 void AdsImpl::OnInlineContentAdViewed(const InlineContentAdInfo& ad) {
-  account_->Deposit(ad.creative_instance_id, ad.type,
-                    ConfirmationType::kViewed);
+  account_->DepositFunds(ad.creative_instance_id, ad.type,
+                         ConfirmationType::kViewed);
 }
 
 void AdsImpl::OnInlineContentAdClicked(const InlineContentAdInfo& ad) {
   ad_transfer_->set_last_clicked_ad(ad);
 
-  account_->Deposit(ad.creative_instance_id, ad.type,
-                    ConfirmationType::kClicked);
+  account_->DepositFunds(ad.creative_instance_id, ad.type,
+                         ConfirmationType::kClicked);
 }
 
 void AdsImpl::OnInlineContentAdEventFailed(
@@ -866,8 +885,8 @@ void AdsImpl::OnWillTransferAd(const AdInfo& ad, const base::Time& time) {
 void AdsImpl::OnDidTransferAd(const AdInfo& ad) {
   BLOG(1, "Transferred ad for " << ad.target_url);
 
-  account_->Deposit(ad.creative_instance_id, ad.type,
-                    ConfirmationType::kTransferred);
+  account_->DepositFunds(ad.creative_instance_id, ad.type,
+                         ConfirmationType::kTransferred);
 }
 
 void AdsImpl::OnCancelledAdTransfer(const AdInfo& ad, const int32_t tab_id) {
@@ -885,9 +904,9 @@ void AdsImpl::OnConversion(
     return;
   }
 
-  account_->Deposit(conversion_queue_item.creative_instance_id,
-                    conversion_queue_item.ad_type,
-                    ConfirmationType::kConversion);
+  account_->DepositFunds(conversion_queue_item.creative_instance_id,
+                         conversion_queue_item.ad_type,
+                         ConfirmationType::kConversion);
 }
 
 }  // namespace ads

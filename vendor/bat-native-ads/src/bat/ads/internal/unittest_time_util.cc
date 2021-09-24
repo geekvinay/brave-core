@@ -13,24 +13,23 @@
 
 namespace ads {
 
-base::Time TimeFromUTCString(const std::string& time_string) {
+base::Time TimeFromString(const std::string& time_string, const bool is_local) {
   base::Time time;
-  const bool success = base::Time::FromUTCString(time_string.c_str(), &time);
+
+  bool success;
+
+  if (is_local) {
+    success = base::Time::FromString(time_string.c_str(), &time);
+  } else {
+    success = base::Time::FromUTCString(time_string.c_str(), &time);
+  }
   DCHECK(success);
 
   return time;
 }
 
-double UTCTimeStringToTimestamp(const std::string& time_string) {
-  return TimeToTimestamp(TimeFromUTCString(time_string));
-}
-
 base::Time TimestampToTime(const double timestamp) {
   return base::Time::FromDoubleT(timestamp);
-}
-
-double TimeToTimestamp(const base::Time& time) {
-  return time.ToDoubleT();
 }
 
 base::Time MinTime() {

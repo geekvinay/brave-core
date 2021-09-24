@@ -23,11 +23,9 @@ StatementInfo::~StatementInfo() = default;
 
 bool StatementInfo::operator==(const StatementInfo& rhs) const {
   return DoubleEquals(next_payment_date, rhs.next_payment_date) &&
-         ads_received_this_month == rhs.ads_received_this_month &&
          DoubleEquals(earnings_this_month, rhs.earnings_this_month) &&
          DoubleEquals(earnings_last_month, rhs.earnings_last_month) &&
-         cleared_transactions == rhs.cleared_transactions &&
-         uncleared_transactions == rhs.uncleared_transactions;
+         ads_received_this_month == rhs.ads_received_this_month;
 }
 
 bool StatementInfo::operator!=(const StatementInfo& rhs) const {
@@ -41,24 +39,15 @@ std::string StatementInfo::ToJson() const {
   dictionary.SetKey("next_payment_date",
                     base::Value(base::NumberToString(next_payment_date)));
 
-  // Ads received this month
-  dictionary.SetKey("ads_received_this_month",
-                    base::Value(ads_received_this_month));
-
   // Earnings this month
   dictionary.SetKey("earnings_this_month", base::Value(earnings_this_month));
 
   // Earnings last month
   dictionary.SetKey("earnings_last_month", base::Value(earnings_last_month));
 
-  // Transactions
-  base::Value transactions_list = GetClearedTransactionsAsList();
-  dictionary.SetKey("transactions", base::Value(std::move(transactions_list)));
-
-  // Uncleared transactions
-  base::Value uncleared_transactions_list = GetUnclearedTransactionsAsList();
-  dictionary.SetKey("uncleared_transactions",
-                    base::Value(std::move(uncleared_transactions_list)));
+  // Ads received this month
+  dictionary.SetKey("ads_received_this_month",
+                    base::Value(ads_received_this_month));
 
   // Write to JSON
   std::string json;
@@ -80,13 +69,11 @@ bool StatementInfo::FromJson(const std::string& json) {
 
   next_payment_date = GetNextPaymentDateFromDictionary(dictionary);
 
-  ads_received_this_month = GetAdsReceivedThisMonthFromDictionary(dictionary);
-
   earnings_this_month = GetEarningsThisMonthFromDictionary(dictionary);
   earnings_last_month = GetEarningsLastMonthFromDictionary(dictionary);
 
-  cleared_transactions = GetClearedTransactionsFromDictionary(dictionary);
-  uncleared_transactions = GetUnclearedTransactionsFromDictionary(dictionary);
+  ads_received_this_month =
+      GetAdsReceivedForThisMonthFromDictionary(dictionary);
 
   return true;
 }
@@ -110,13 +97,6 @@ double StatementInfo::GetNextPaymentDateFromDictionary(
   return value_as_double;
 }
 
-uint64_t StatementInfo::GetAdsReceivedThisMonthFromDictionary(
-    base::DictionaryValue* dictionary) const {
-  DCHECK(dictionary);
-
-  return dictionary->FindIntKey("ads_received_this_month").value_or(0);
-}
-
 double StatementInfo::GetEarningsThisMonthFromDictionary(
     base::DictionaryValue* dictionary) const {
   DCHECK(dictionary);
@@ -131,83 +111,11 @@ double StatementInfo::GetEarningsLastMonthFromDictionary(
   return dictionary->FindDoubleKey("earnings_last_month").value_or(0.0);
 }
 
-base::Value StatementInfo::GetClearedTransactionsAsList() const {
-  base::Value list(base::Value::Type::LIST);
-
-  for (const auto& transaction : cleared_transactions) {
-    base::Value dictionary(base::Value::Type::DICTIONARY);
-    transaction.ToDictionary(&dictionary);
-
-    list.Append(std::move(dictionary));
-  }
-
-  return list;
-}
-
-TransactionList StatementInfo::GetClearedTransactionsFromDictionary(
+int StatementInfo::GetAdsReceivedForThisMonthFromDictionary(
     base::DictionaryValue* dictionary) const {
   DCHECK(dictionary);
 
-  base::Value* transactions_list = dictionary->FindListKey("transactions");
-  if (!transactions_list) {
-    return {};
-  }
-
-  TransactionList transactions;
-
-  for (auto& value : transactions_list->GetList()) {
-    base::DictionaryValue* transaction_dictionary = nullptr;
-    if (!value.GetAsDictionary(&transaction_dictionary)) {
-      continue;
-    }
-
-    TransactionInfo transaction;
-    transaction.FromDictionary(transaction_dictionary);
-
-    transactions.push_back(transaction);
-  }
-
-  return transactions;
-}
-
-base::Value StatementInfo::GetUnclearedTransactionsAsList() const {
-  base::Value list(base::Value::Type::LIST);
-
-  for (const auto& transaction : uncleared_transactions) {
-    base::Value dictionary(base::Value::Type::DICTIONARY);
-    transaction.ToDictionary(&dictionary);
-
-    list.Append(std::move(dictionary));
-  }
-
-  return list;
-}
-
-TransactionList StatementInfo::GetUnclearedTransactionsFromDictionary(
-    base::DictionaryValue* dictionary) const {
-  DCHECK(dictionary);
-
-  base::Value* transactions_list =
-      dictionary->FindListKey("uncleared_transactions");
-  if (!transactions_list) {
-    return {};
-  }
-
-  TransactionList transactions;
-
-  for (auto& value : transactions_list->GetList()) {
-    base::DictionaryValue* transaction_dictionary = nullptr;
-    if (!value.GetAsDictionary(&transaction_dictionary)) {
-      continue;
-    }
-
-    TransactionInfo transaction;
-    transaction.FromDictionary(transaction_dictionary);
-
-    transactions.push_back(transaction);
-  }
-
-  return transactions;
+  return dictionary->FindIntKey("ads_received_this_month").value_or(0);
 }
 
 }  // namespace ads

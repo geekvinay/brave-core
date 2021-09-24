@@ -39,8 +39,7 @@ TEST(BatAdsAdEventUtilTest, GetLastSeenAdTimeForUnseenAd) {
   const CreativeAdNotificationInfo creative_ad_1 =
       BuildCreativeAdNotification();
 
-  const base::Time event_time =
-      base::Time::Now() - base::TimeDelta::FromHours(12);
+  const base::Time event_time = Now() - base::TimeDelta::FromHours(12);
   const AdEventInfo ad_event =
       BuildAdEvent(creative_ad_1, ConfirmationType::kViewed, event_time);
   ad_events.push_back(ad_event);
@@ -59,7 +58,7 @@ TEST(BatAdsAdEventUtilTest, GetLastSeenAdTime) {
   // Arrange
   AdEventList ad_events;
 
-  const base::Time now = base::Time::Now();
+  const base::Time now = Now();
 
   const CreativeAdNotificationInfo creative_ad_1 =
       BuildCreativeAdNotification();
@@ -118,8 +117,7 @@ TEST(BatAdsAdEventUtilTest, GetLastSeenAdvertiserTimeForUnseenAdvertiser) {
   const CreativeAdNotificationInfo creative_ad_1 =
       BuildCreativeAdNotification();
 
-  const base::Time event_time =
-      base::Time::Now() - base::TimeDelta::FromHours(12);
+  const base::Time event_time = Now() - base::TimeDelta::FromHours(12);
   const AdEventInfo ad_event =
       BuildAdEvent(creative_ad_1, ConfirmationType::kViewed, event_time);
   ad_events.push_back(ad_event);
@@ -150,7 +148,7 @@ TEST(BatAdsAdEventUtilTest, GetLastSeenAdvertiserTime) {
 
   AdEventList ad_events;
 
-  const base::Time now = base::Time::Now();
+  const base::Time now = Now();
 
   const AdEventInfo ad_event_4 =
       BuildAdEvent(creative_ad_1, ConfirmationType::kViewed,
