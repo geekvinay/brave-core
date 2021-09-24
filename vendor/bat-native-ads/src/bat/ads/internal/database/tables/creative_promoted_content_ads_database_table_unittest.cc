@@ -263,7 +263,6 @@ TEST_F(BatAdsCreativePromotedContentAdsDatabaseTableTest,
 
 TEST_F(BatAdsCreativePromotedContentAdsDatabaseTableTest, GetForSegments) {
   // Arrange
-
   CreativePromotedContentAdList creative_promoted_content_ads;
 
   CreativeDaypartInfo daypart_info;

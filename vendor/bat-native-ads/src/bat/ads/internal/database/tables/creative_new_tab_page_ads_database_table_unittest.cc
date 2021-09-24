@@ -260,7 +260,6 @@ TEST_F(BatAdsCreativeNewTabPageAdsDatabaseTableTest,
 
 TEST_F(BatAdsCreativeNewTabPageAdsDatabaseTableTest, GetForSegments) {
   // Arrange
-
   CreativeNewTabPageAdList creative_new_tab_page_ads;
 
   CreativeDaypartInfo daypart_info;
