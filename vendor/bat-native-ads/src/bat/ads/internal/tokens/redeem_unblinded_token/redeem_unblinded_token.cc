@@ -189,7 +189,7 @@ void RedeemUnblindedToken::OnFetchPaymentToken(
 
   // Validate id
   if (*id != confirmation.id) {
-    BLOG(0, "Response id " << *id << " does not match confirmation id "
+    BLOG(0, "Response id " << *id << " does not match transaction id "
                            << confirmation.id);
     OnFailedToRedeemUnblindedToken(confirmation, /* should_retry */ false);
     return;
@@ -294,6 +294,7 @@ void RedeemUnblindedToken::OnFetchPaymentToken(
   }
 
   privacy::UnblindedPaymentTokenInfo unblinded_payment_token;
+  unblinded_payment_token.transaction_id = confirmation.transaction_id;
   unblinded_payment_token.value = batch_dleq_proof_unblinded_tokens.front();
   unblinded_payment_token.public_key = public_key;
   unblinded_payment_token.confirmation_type = confirmation.type;
