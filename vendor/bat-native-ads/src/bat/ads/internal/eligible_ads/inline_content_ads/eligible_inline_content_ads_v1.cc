@@ -93,6 +93,12 @@ void EligibleAdsV1::GetForParentChildSegments(
       segments, dimensions,
       [=](const bool success, const SegmentList& segments,
           const CreativeInlineContentAdList& creative_ads) {
+        if (!success) {
+          BLOG(1, "Failed to get ads");
+          callback(/* had_opportunity */ false, {});
+          return;
+        }
+
         const CreativeInlineContentAdList eligible_creative_ads =
             FilterCreativeAds(creative_ads, ad_events, browsing_history);
 
@@ -129,6 +135,12 @@ void EligibleAdsV1::GetForParentSegments(
       segments, dimensions,
       [=](const bool success, const SegmentList& segments,
           const CreativeInlineContentAdList& creative_ads) {
+        if (!success) {
+          BLOG(1, "Failed to get ads");
+          callback(/* had_opportunity */ false, {});
+          return;
+        }
+
         const CreativeInlineContentAdList eligible_creative_ads =
             FilterCreativeAds(creative_ads, ad_events, browsing_history);
 
@@ -154,6 +166,12 @@ void EligibleAdsV1::GetForUntargeted(
       {kUntargeted}, dimensions,
       [=](const bool success, const SegmentList& segments,
           const CreativeInlineContentAdList& creative_ads) {
+        if (!success) {
+          BLOG(1, "Failed to get ads");
+          callback(/* had_opportunity */ false, {});
+          return;
+        }
+
         const CreativeInlineContentAdList eligible_creative_ads =
             FilterCreativeAds(creative_ads, ad_events, browsing_history);
 

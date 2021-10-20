@@ -86,6 +86,12 @@ void EligibleAdsV1::GetForParentChildSegments(
   database_table.GetForSegments(
       segments, [=](const bool success, const SegmentList& segments,
                     const CreativeAdNotificationList& creative_ads) {
+        if (!success) {
+          BLOG(1, "Failed to get ads");
+          callback(/* had_opportunity */ false, {});
+          return;
+        }
+
         const CreativeAdNotificationList eligible_creative_ads =
             FilterCreativeAds(creative_ads, ad_events, browsing_history);
 
@@ -120,6 +126,12 @@ void EligibleAdsV1::GetForParentSegments(
   database_table.GetForSegments(
       segments, [=](const bool success, const SegmentList& segments,
                     const CreativeAdNotificationList& creative_ads) {
+        if (!success) {
+          BLOG(1, "Failed to get ads");
+          callback(/* had_opportunity */ false, {});
+          return;
+        }
+
         const CreativeAdNotificationList eligible_creative_ads =
             FilterCreativeAds(creative_ads, ad_events, browsing_history);
 
@@ -143,6 +155,12 @@ void EligibleAdsV1::GetForUntargeted(
   database_table.GetForSegments(
       {kUntargeted}, [=](const bool success, const SegmentList& segments,
                          const CreativeAdNotificationList& creative_ads) {
+        if (!success) {
+          BLOG(1, "Failed to get ads");
+          callback(/* had_opportunity */ false, {});
+          return;
+        }
+
         const CreativeAdNotificationList eligible_creative_ads =
             FilterCreativeAds(creative_ads, ad_events, browsing_history);
 
