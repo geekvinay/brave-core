@@ -9,30 +9,37 @@ import { initLocale } from 'brave-ui'
 import { bindActionCreators } from 'redux'
 require('emptykit.css')
 
+import { LocaleContext } from '../shared/lib/locale_context'
+import { WithThemeVariables } from '../shared/components/with_theme_variables'
+
 // Components
 import App from './components/app'
 require('../../../../ui/webui/resources/fonts/muli.css')
 require('../../../../ui/webui/resources/fonts/poppins.css')
-
-import { WithThemeVariables } from '../shared/components/with_theme_variables'
 
 // Utils
 import { ThemeProvider } from 'styled-components'
 import { loadTimeData } from '../../../common/loadTimeData'
 import store from './store'
 import Theme from 'brave-ui/theme/brave-default'
-import { getActions as getUtilActions, getCurrentBalanceReport, setActions } from './utils'
+import { getActions as getUtilActions, setActions, getCurrentBalanceReport } from './utils'
 import * as rewardsActions from './actions/rewards_actions'
 
 function initialize () {
   initLocale(loadTimeData.data_)
 
+  const localeContext = {
+    getString: (key: string) => loadTimeData.getString(key)
+  }
+
   render(
     <Provider store={store}>
       <ThemeProvider theme={Theme}>
-        <WithThemeVariables>
-          <App />
-        </WithThemeVariables>
+        <LocaleContext.Provider value={localeContext}>
+          <WithThemeVariables>
+            <App />
+          </WithThemeVariables>
+        </LocaleContext.Provider>
       </ThemeProvider>
     </Provider>,
     document.getElementById('root'))
@@ -50,10 +57,21 @@ function getActions () {
 
 function rewardsParameters (properties: Rewards.RewardsParameters) {
   getActions().onRewardsParameters(properties)
+  // Get the current AC amount after rewards parameters have been
+  // updated, as the default AC amount may have been changed.
+  getActions().getContributionAmount()
 }
 
 function promotions (properties: Rewards.PromotionResponse) {
   getActions().onPromotions(properties)
+}
+
+function claimPromotion (properties: Rewards.Captcha) {
+  getActions().onClaimPromotion(properties)
+}
+
+function recoverWalletData (result: number) {
+  getActions().onRecoverWalletData(result)
 }
 
 function promotionFinish (properties: Rewards.PromotionFinish) {
@@ -118,6 +136,10 @@ function recurringTipRemoved (success: boolean) {
   getActions().onRecurringTipRemoved(success)
 }
 
+function externalWalletProviderList (list: Rewards.ExternalWalletProvider[]) {
+  getActions().onExternalWalletProviderList(list)
+}
+
 function pendingContributions (list: Rewards.PendingContribution[]) {
   getActions().onPendingContributions(list)
 }
@@ -147,6 +169,28 @@ function reconcileComplete (properties: {type: number, result: number}) {
   if (properties.type === 8) { // Rewards.RewardsType.ONE_TIME_TIP
     chrome.send('brave_rewards.getOneTimeTips')
   }
+
+  // EXPIRED TOKEN
+  if (properties.result === 24) {
+    getActions().getExternalWallet()
+  }
+}
+
+function externalWallet (properties: {result: number, wallet: Rewards.ExternalWallet}) {
+  getActions().onExternalWallet(properties.result, properties.wallet)
+}
+
+function processRewardsPageUrl (data: Rewards.ProcessRewardsPageUrl) {
+  getActions().onProcessRewardsPageUrl(data)
+}
+
+function disconnectWallet (properties: {result: number}) {
+  if (properties.result === 0) {
+    getActions().getExternalWallet()
+    getActions().getBalance()
+    return
+  }
+  getActions().disconnectWalletError()
 }
 
 function onlyAnonWallet (only: boolean) {
@@ -157,8 +201,48 @@ function unblindedTokensReady () {
   getActions().getBalance()
 }
 
+function monthlyReport (properties: { result: number, month: number, year: number, report: Rewards.MonthlyReport}) {
+  getActions().onMonthlyReport(properties)
+}
+
+function reconcileStampReset () {
+  getActions().onReconcileStampReset()
+}
+
+function monthlyReportIds (ids: string[]) {
+  getActions().onMonthlyReportIds(ids)
+}
+
+function countryCode (countryCode: string) {
+  getActions().onCountryCode(countryCode)
+}
+
 function initialized (result: number) {
   getActions().onInitialized(result)
+}
+
+function completeReset (success: boolean) {
+  getActions().onCompleteReset(success)
+}
+
+function paymentId (paymentId: string) {
+  getActions().onPaymentId(paymentId)
+}
+
+function walletPassphrase (passphrase: string) {
+  getActions().onWalletPassphrase(passphrase)
+}
+
+function onboardingStatus (result: { showOnboarding: boolean }) {
+  getActions().onOnboardingStatus(result.showOnboarding)
+}
+
+function enabledInlineTippingPlatforms (list: string[]) {
+  getActions().onEnabledInlineTippingPlatforms(list)
+}
+
+function externalWalletLogin (url: string) {
+  window.open(url, '_self')
 }
 
 function onPrefChanged (key: string) {
@@ -171,9 +255,12 @@ function onPrefChanged (key: string) {
 window.brave_rewards = {
   rewardsParameters,
   promotions,
+  claimPromotion,
+  recoverWalletData,
   promotionFinish,
   reconcileStamp,
   contributeList,
+  externalWalletProviderList,
   excludedList,
   balanceReport,
   contributionAmount,
@@ -191,9 +278,22 @@ window.brave_rewards = {
   excludedSiteChanged,
   balance,
   reconcileComplete,
+  externalWallet,
+  processRewardsPageUrl,
+  disconnectWallet,
   onlyAnonWallet,
   unblindedTokensReady,
+  monthlyReport,
+  reconcileStampReset,
+  monthlyReportIds,
+  countryCode,
   initialized,
+  completeReset,
+  paymentId,
+  walletPassphrase,
+  onboardingStatus,
+  enabledInlineTippingPlatforms,
+  externalWalletLogin,
   onPrefChanged
 }
 
