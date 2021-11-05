@@ -99,3 +99,22 @@ IN_PROC_BROWSER_TEST_F(BraveActionsContainerTest,
   Init(browser);
   CheckBraveRewardsActionShown(false);
 }
+
+IN_PROC_BROWSER_TEST_F(BraveActionsContainerTest, ShowRewardsIconForPanel) {
+  prefs_->SetBoolean(brave_rewards::prefs::kHideButton, true);
+  CheckBraveRewardsActionShown(false);
+
+  // Simulate pressing the "stub" button to ensure that the extension is loaded.
+  brave_actions_->OnRewardsStubButtonClicked();
+  base::RunLoop().RunUntilIdle();
+
+  // Simulate an action from the brave actions API to open the rewards panel.
+  extensions::BraveActionAPI::Observer* action_observer = brave_actions_;
+  action_observer->OnBraveActionShouldTrigger(brave_rewards_extension_id,
+                                              nullptr);
+
+  base::RunLoop().RunUntilIdle();
+
+  // Rewards action should be shown while popup is open.
+  CheckBraveRewardsActionShown(true);
+}
