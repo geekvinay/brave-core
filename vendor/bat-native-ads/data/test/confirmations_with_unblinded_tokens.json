@@ -8,15 +8,6 @@
       }
     ]
   },
-  "catalog_issuers": {
-    "issuers": [
-      {
-        "name": "0.05BAT",
-        "public_key": "mmXlFlskcF+LjQmJTPQUmoDMV8Co2r+0eNqSyzCywmk="
-      }
-    ],
-    "public_key": "qi1Vl8YrPEZliN5wmBgLTuGkbk8K505QwlXLTZjUd34="
-  },
   "confirmations": {
     "failed_confirmations": []
   },
