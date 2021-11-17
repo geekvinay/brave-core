@@ -12,8 +12,8 @@ import {
 } from './style'
 import { NavButton } from '..'
 import { getLocale } from '../../../../common/locale'
-import { HardwareWalletErrorType } from '../../../constants/types'
 import useInterval from '../../../common/hooks/interval'
+import { HardwareWalletErrorType } from 'components/brave_wallet_ui/common/hardware/types'
 
 export interface Props {
   onCancel: () => void

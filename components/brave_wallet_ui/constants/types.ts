@@ -5,6 +5,7 @@
 
 import * as BraveWallet from 'gen/brave/components/brave_wallet/common/brave_wallet.mojom.m.js'
 import { TimeDelta } from 'gen/mojo/public/mojom/base/time.mojom.m.js'
+import { HardwareWalletErrorType } from '../common/hardware/types'
 // Provide access to all the generated types.
 export * from 'gen/brave/components/brave_wallet/common/brave_wallet.mojom.m.js'
 export { Url } from 'gen/url/mojom/url.mojom.m.js'
@@ -133,11 +134,6 @@ export type ChartTimelineType =
   | '3Months'
   | '1Year'
   | 'AllTime'
-
-export type HardwareWalletErrorType =
-  | 'deviceNotConnected'
-  | 'deviceBusy'
-  | 'openEthereumApp'
 
 export interface BuySendSwapObjectType {
   name: string

@@ -18,11 +18,11 @@ import {
   SwapErrorResponse,
   SwapResponse,
   SignMessageRequest,
-  SwitchChainRequest,
-  HardwareWalletErrorType
+  SwitchChainRequest
 } from '../../constants/types'
 import { SwapParamsPayloadType } from '../../common/constants/action_types'
 import { TransactionInfo } from 'gen/brave/components/brave_wallet/common/brave_wallet.mojom.m.js'
+import { HardwareWalletErrorType } from 'components/brave_wallet_ui/common/hardware/types'
 
 export const connectToSite = createAction<AccountPayloadType>('connectToSite')
 export const cancelConnectToSite = createAction<AccountPayloadType>('cancelConnectToSite')

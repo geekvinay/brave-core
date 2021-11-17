@@ -5,7 +5,6 @@
 
 import { createReducer } from 'redux-act'
 import {
-  HardwareWalletErrorType,
   PanelState,
   SwapErrorResponse,
   SwapResponse,
@@ -18,6 +17,7 @@ import {
   SignMessagePayload
 } from '../constants/action_types'
 import { PanelTitles } from '../../options/panel-titles'
+import { HardwareWalletErrorType } from 'components/brave_wallet_ui/common/hardware/types'
 
 const defaultState: PanelState = {
   hasInitialized: false,

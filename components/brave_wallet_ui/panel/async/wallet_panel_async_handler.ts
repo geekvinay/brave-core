@@ -21,7 +21,8 @@ import {
 import {
   WalletPanelState,
   PanelState,
-  WalletState
+  WalletState,
+  HardwareInfo
 } from '../../constants/types'
 import {
   AccountPayloadType,
@@ -50,8 +51,9 @@ import { Store } from '../../common/async/types'
 import { getLocale } from '../../../common/locale'
 
 import getWalletPanelApiProxy from '../wallet_panel_api_proxy'
-import { TrezorErrorsCodes } from '../../common/trezor/trezor-messages'
-import { LedgerErrorsCodes } from '../../common/ledgerjs/eth_ledger_bridge_keyring'
+import { LedgerErrorsCodes } from '../../common/hardware/ledgerjs/eth_ledger_bridge_keyring'
+import { TrezorErrorsCodes } from '../../common/hardware/trezor/trezor-messages'
+import { HardwareVendor } from 'components/brave_wallet_ui/common/api/getKeyringsByType'
 
 const handler = new AsyncActionHandler()
 
@@ -171,26 +173,27 @@ handler.on(PanelActions.cancelConnectToSite.getType(), async (store: Store, payl
 })
 
 handler.on(PanelActions.cancelConnectHardwareWallet.getType(), async (store: Store, txInfo: TransactionInfo) => {
-  const hardwareAccount = await findHardwareAccountInfo(txInfo.fromAddress)
-  if (!hardwareAccount || !hardwareAccount.hardware) {
+  const found = await findHardwareAccountInfo(txInfo.fromAddress)
+  if (!found || !found.hardware) {
     return
   }
-  const apiProxy = getWalletPanelApiProxy()
-  await cancelHardwareOperation(apiProxy, hardwareAccount.hardware.vendor)
+  const info: HardwareInfo = found.hardware
+  await cancelHardwareOperation(info.vendor as HardwareVendor)
   // Navigating to main panel view will unmount ConnectHardwareWalletPanel
   // and therefore forfeit connecting to the hardware wallet.
   await store.dispatch(PanelActions.navigateToMain())
 })
 
 handler.on(PanelActions.approveHardwareTransaction.getType(), async (store: Store, txInfo: TransactionInfo) => {
-  const hardwareAccount = await findHardwareAccountInfo(txInfo.fromAddress)
-  if (!hardwareAccount || !hardwareAccount.hardware) {
+  const found = await findHardwareAccountInfo(txInfo.fromAddress)
+  if (!found || !found.hardware) {
     return
   }
+  const hardwareAccount: HardwareInfo = found.hardware
   await navigateToConnectHardwareWallet(store)
   const apiProxy = getWalletPanelApiProxy()
-  if (hardwareAccount.hardware.vendor === LEDGER_HARDWARE_VENDOR) {
-    const { success, error, code } = await signLedgerTransaction(apiProxy, hardwareAccount.hardware.path, txInfo)
+  if (hardwareAccount.vendor === LEDGER_HARDWARE_VENDOR) {
+    const { success, error, code } = await signLedgerTransaction(apiProxy, hardwareAccount.path, txInfo)
     if (!success) {
       if (code) {
         if (code === LedgerStatusCodes.CONDITIONS_OF_USE_NOT_SATISFIED) {
@@ -210,9 +213,9 @@ handler.on(PanelActions.approveHardwareTransaction.getType(), async (store: Stor
       await store.dispatch(PanelActions.navigateToMain())
       refreshTransactionHistory(txInfo.fromAddress)
     }
-  } else if (hardwareAccount.hardware.vendor === TREZOR_HARDWARE_VENDOR) {
+  } else if (hardwareAccount.vendor === TREZOR_HARDWARE_VENDOR) {
     apiProxy.panelHandler.setCloseOnDeactivate(false)
-    const { success, error, deviceError } = await signTrezorTransaction(apiProxy, hardwareAccount.hardware.path, txInfo)
+    const { success, error, deviceError } = await signTrezorTransaction(apiProxy, hardwareAccount.path, txInfo)
     if (!success) {
       if (deviceError === 'deviceBusy') {
         // do nothing as the operation is already in progress
@@ -331,7 +334,7 @@ handler.on(PanelActions.signMessageHardware.getType(), async (store, messageData
   }
   await navigateToConnectHardwareWallet(store)
   const info = hardwareAccount.hardware
-  const signed = await signMessageWithHardwareKeyring(apiProxy, info.vendor, info.path, messageData.message)
+  const signed = await signMessageWithHardwareKeyring(info.vendor as HardwareVendor, info.path, messageData.message)
   if (!signed.success &&
       (signed.code === TrezorErrorsCodes.CommandInProgress ||
        signed.code === LedgerErrorsCodes.TransportLocked)) {
@@ -388,7 +391,7 @@ handler.on(PanelActions.openWalletApps.getType(), async (store) => {
 handler.on(PanelActions.expandRestoreWallet.getType(), async (store) => {
   chrome.tabs.create({ url: 'chrome://wallet/crypto/restore-wallet' }, () => {
     if (chrome.runtime.lastError) {
-      console.error('tabs.create failed: ' + chrome.runtime.lastError.message)
+       console.error('tabs.create failed: ' + chrome.runtime.lastError.message)
     }
   })
 })
