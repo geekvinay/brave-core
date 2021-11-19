@@ -58,12 +58,15 @@ class Confirmations final : public RedeemUnblindedTokenDelegate {
       const std::string& creative_instance_id,
       const ConfirmationType& confirmation_type,
       const AdType& ad_type,
+      const double value,
       const base::DictionaryValue& user_data) const;
 
   BackoffTimer retry_timer_;
   void Retry();
   void OnRetry();
   void StopRetrying();
+
+  privacy::cbr::TokenList GenerateTokensForValue(const double value) const;
 
   void CreateNewConfirmationAndAppendToRetryQueue(
       const ConfirmationInfo& confirmation);
