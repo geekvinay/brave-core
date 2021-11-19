@@ -45,10 +45,6 @@ std::string CreateConfirmationRequestDTO(const ConfirmationInfo& confirmation) {
   const std::string type = std::string(confirmation.type);
   dto.SetKey("type", base::Value(type));
 
-  const std::string public_key =
-      confirmation.unblinded_token.public_key.encode_base64();
-  dto.SetKey("publicKey", base::Value(public_key));
-
   absl::optional<base::Value> user_data =
       base::JSONReader::Read(confirmation.user_data);
   if (user_data && user_data->is_dict()) {
