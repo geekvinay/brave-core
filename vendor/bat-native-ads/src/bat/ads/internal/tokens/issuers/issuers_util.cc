@@ -89,4 +89,24 @@ bool PublicKeyExistsForIssuerType(const IssuerType issuer_type,
   return PublicKeyExists(issuer, public_key);
 }
 
+double GetSmallestDenominationForIssuerType(const IssuerType issuer_type) {
+  const absl::optional<IssuerInfo>& issuer_optional =
+      GetIssuerForType(issuer_type);
+  if (!issuer_optional) {
+    return 0.0;
+  }
+  const IssuerInfo& issuer = issuer_optional.value();
+
+  const PublicKeyList& public_keys = issuer.public_keys;
+
+  const auto iter = std::min_element(
+      std::begin(public_keys), std::end(public_keys),
+      [](const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
+  if (iter == public_keys.end()) {
+    return 0.0;
+  }
+
+  return iter->second;
+}
+
 }  // namespace ads

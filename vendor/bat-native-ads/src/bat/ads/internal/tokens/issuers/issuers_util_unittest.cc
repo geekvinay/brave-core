@@ -165,4 +165,27 @@ TEST_F(BatAdsIssuersUtilTest, PublickKeyDoesNotExistForPaymentsType) {
   EXPECT_FALSE(does_exist);
 }
 
+TEST_F(BatAdsIssuersUtilTest, GetSmallestDenominationForIssuerType) {
+  // Arrange
+  BuildAndSetIssuers();
+
+  // Act
+  const double value =
+      GetSmallestDenominationForIssuerType(IssuerType::kPayments);
+
+  // Assert
+  EXPECT_EQ(0.1, value);
+}
+
+TEST_F(BatAdsIssuersUtilTest, GetSmallestDenominationForMissingIssuerType) {
+  // Arrange
+
+  // Act
+  const double value =
+      GetSmallestDenominationForIssuerType(IssuerType::kPayments);
+
+  // Assert
+  EXPECT_EQ(0.0, value);
+}
+
 }  // namespace ads
