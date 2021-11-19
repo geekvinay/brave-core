@@ -39,7 +39,8 @@ namespace {
 const int64_t kRetryAfterSeconds = 15;
 }  // namespace
 
-Confirmations::Confirmations(privacy::TokenGeneratorInterface* token_generator)
+Confirmations::Confirmations(
+    privacy::cbr::TokenGeneratorInterface* token_generator)
     : token_generator_(token_generator),
       redeem_unblinded_token_(std::make_unique<RedeemUnblindedToken>()) {
   DCHECK(token_generator_);
