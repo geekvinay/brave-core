@@ -24,6 +24,8 @@ bool IssuerExistsForType(const IssuerType issuer_type);
 bool PublicKeyExistsForIssuerType(const IssuerType issuer_type,
                                   const std::string& public_key);
 
+double GetSmallestDenominationForIssuerType(const IssuerType issuer_type);
+
 }  // namespace ads
 
 #endif  // BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_TOKENS_ISSUERS_ISSUERS_UTIL_H_
