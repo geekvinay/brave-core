@@ -248,6 +248,9 @@ base::Value ConfirmationsState::GetFailedConfirmationsAsDictionary(
     std::string ad_type = std::string(confirmation.ad_type);
     confirmation_dictionary.SetKey("ad_type", base::Value(ad_type));
 
+    std::string value = base::NumberToString(confirmation.value);
+    confirmation_dictionary.SetKey("value", base::Value(value));
+
     base::Value token_info_dictionary(base::Value::Type::DICTIONARY);
     const std::string unblinded_token_base64 =
         confirmation.unblinded_token.value.encode_base64();
@@ -381,6 +384,12 @@ bool ConfirmationsState::GetFailedConfirmationsFromDictionary(
         confirmation_dictionary->FindStringKey("ad_type");
     if (ad_type) {
       confirmation.ad_type = AdType(*ad_type);
+    }
+
+    // Value
+    const std::string* value = confirmation_dictionary->FindStringKey("value");
+    if (value) {
+      base::StringToDouble(*value, &confirmation.value);
     }
 
     // Token info
