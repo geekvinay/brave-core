@@ -32,7 +32,6 @@
 #include "bat/ads/internal/tokens/redeem_unblinded_token/create_confirmation_util.h"
 #include "bat/ads/internal/tokens/redeem_unblinded_token/redeem_unblinded_token.h"
 #include "bat/ads/internal/tokens/redeem_unblinded_token/user_data/confirmation_dto_user_data_builder.h"
-#include "bat/ads/pref_names.h"
 #include "bat/ads/transaction_info.h"
 
 namespace ads {
@@ -262,7 +261,6 @@ void Confirmations::OnDidSendConfirmation(
               << confirmation.creative_instance_id);
 
   StopRetrying();
-
   ProcessRetryQueue();
 }
 
@@ -280,38 +278,16 @@ void Confirmations::OnDidRedeemUnblindedToken(
       {unblinded_payment_token});
   ConfirmationsState::Get()->Save();
 
-  const int unblinded_payment_tokens_count =
-      ConfirmationsState::Get()->get_unblinded_payment_tokens()->Count();
-
-  const base::Time& next_token_redemption_at = base::Time::FromDoubleT(
-      AdsClientHelper::Get()->GetDoublePref(prefs::kNextTokenRedemptionAt));
-
-  BLOG(1, "Successfully redeemed unblinded token for "
-              << std::string(confirmation.ad_type) << " with confirmation id "
-              << confirmation.id << ", transaction id "
-              << confirmation.transaction_id << ", creative instance id "
-              << confirmation.creative_instance_id << " and "
-              << std::string(confirmation.type) << ". You now have "
-              << unblinded_payment_tokens_count
-              << " unblinded payment tokens which will be redeemed "
-              << FriendlyDateAndTime(next_token_redemption_at));
-
   NotifyDidConfirm(confirmation);
 
   StopRetrying();
-
   ProcessRetryQueue();
 }
 
 void Confirmations::OnFailedToRedeemUnblindedToken(
     const ConfirmationInfo& confirmation,
     const bool should_retry) {
-  BLOG(1, "Failed to redeem unblinded token for "
-              << std::string(confirmation.ad_type) << " with confirmation id "
-              << confirmation.id << ", transaction id "
-              << confirmation.transaction_id << ", creative instance id "
-              << confirmation.creative_instance_id << " and "
-              << std::string(confirmation.type));
+  NotifyFailedToConfirm(confirmation);
 
   if (should_retry) {
     if (!confirmation.was_created) {
@@ -321,9 +297,11 @@ void Confirmations::OnFailedToRedeemUnblindedToken(
     }
   }
 
-  NotifyFailedToConfirm(confirmation);
-
   ProcessRetryQueue();
+}
+
+void Confirmations::OnIssuersOutOfDate() {
+  NotifyIssuersOutOfDate();
 }
 
 void Confirmations::NotifyDidConfirm(
@@ -337,6 +315,12 @@ void Confirmations::NotifyFailedToConfirm(
     const ConfirmationInfo& confirmation) const {
   for (ConfirmationsObserver& observer : observers_) {
     observer.OnFailedToConfirm(confirmation);
+  }
+}
+
+void Confirmations::NotifyIssuersOutOfDate() const {
+  for (ConfirmationsObserver& observer : observers_) {
+    observer.OnIssuersOutOfDate();
   }
 }
 

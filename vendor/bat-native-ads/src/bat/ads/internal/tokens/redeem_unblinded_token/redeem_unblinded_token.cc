@@ -100,6 +100,18 @@ void RedeemUnblindedToken::OnCreateConfirmation(
     BLOG(1, "Duplicate/bad confirmation");
   }
 
+  if (url_response.status_code == net::HTTP_EXPECTATION_FAILED) {
+    BLOG(1, "Expectation failed");
+
+    if (delegate_) {
+      delegate_->OnIssuersOutOfDate();
+    }
+
+    OnFailedToRedeemUnblindedToken(confirmation, /* should_retry */ true);
+
+    return;
+  }
+
   if (url_response.status_code == 418) {  // I'm a teapot
     if (delegate_) {
       delegate_->OnDidSendConfirmation(confirmation);

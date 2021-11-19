@@ -75,6 +75,7 @@ class Confirmations final : public RedeemUnblindedTokenDelegate {
 
   void NotifyDidConfirm(const ConfirmationInfo& confirmation) const;
   void NotifyFailedToConfirm(const ConfirmationInfo& confirmation) const;
+  void NotifyIssuersOutOfDate() const;
 
   // RedeemUnblindedTokenDelegate:
   void OnDidSendConfirmation(const ConfirmationInfo& confirmation) override;
@@ -83,6 +84,7 @@ class Confirmations final : public RedeemUnblindedTokenDelegate {
                                      unblinded_payment_token) override;
   void OnFailedToRedeemUnblindedToken(const ConfirmationInfo& confirmation,
                                       const bool should_retry) override;
+  void OnIssuersOutOfDate() override;
 };
 
 }  // namespace ads
