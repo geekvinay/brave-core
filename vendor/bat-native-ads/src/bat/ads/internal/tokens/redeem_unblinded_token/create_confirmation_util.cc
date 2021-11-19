@@ -12,9 +12,12 @@
 #include "base/json/json_reader.h"
 #include "base/json/json_writer.h"
 #include "base/notreached.h"
+#include "base/strings/string_number_conversions.h"
 #include "bat/ads/internal/account/confirmations/confirmation_info.h"
 #include "bat/ads/internal/privacy/challenge_bypass_ristretto_util.h"
 #include "bat/ads/internal/privacy/unblinded_tokens/unblinded_token_info.h"
+#include "bat/ads/internal/tokens/issuers/issuer_types.h"
+#include "bat/ads/internal/tokens/issuers/issuers_util.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
 #include "wrapper.hpp"
 
@@ -32,15 +35,21 @@ std::string CreateConfirmationRequestDTO(const ConfirmationInfo& confirmation) {
 
   dto.SetKey("payload", base::Value(base::Value::Type::DICTIONARY));
 
-  const std::string blinded_payment_token_base64 =
-      confirmation.blinded_payment_token.encode_base64();
-  if (!blinded_payment_token_base64.empty()) {
-    base::Value list(base::Value::Type::LIST);
+  base::Value blinded_payment_token_list(base::Value::Type::LIST);
+  for (const auto& blinded_token : confirmation.blinded_tokens) {
+    const std::string& blinded_token_base64 = blinded_token.encode_base64();
+    if (blinded_token_base64.empty()) {
+      continue;
+    }
 
-    list.Append(blinded_payment_token_base64);
-
-    dto.SetKey("blindedPaymentTokens", std::move(list));
+    blinded_payment_token_list.Append(blinded_token_base64);
   }
+  dto.SetKey("blindedPaymentTokens", std::move(blinded_payment_token_list));
+
+  const double smallest_denomination =
+      GetSmallestDenominationForIssuerType(IssuerType::kPayments);
+  dto.SetKey("lowestValue",
+             base::Value(base::NumberToString(smallest_denomination)));
 
   const std::string type = std::string(confirmation.type);
   dto.SetKey("type", base::Value(type));
