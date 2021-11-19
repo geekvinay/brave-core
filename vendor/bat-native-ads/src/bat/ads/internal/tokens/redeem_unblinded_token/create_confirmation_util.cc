@@ -70,32 +70,32 @@ std::string CreateCredential(const privacy::UnblindedTokenInfo& unblinded_token,
 
   VerificationKey verification_key =
       unblinded_token.value.derive_verification_key();
-  if (privacy::ExceptionOccurred()) {
+  if (privacy::cbr::ExceptionOccurred()) {
     NOTREACHED();
     return "";
   }
 
   VerificationSignature verification_signature = verification_key.sign(payload);
-  if (privacy::ExceptionOccurred()) {
+  if (privacy::cbr::ExceptionOccurred()) {
     NOTREACHED();
     return "";
   }
 
   const std::string verification_signature_base64 =
       verification_signature.encode_base64();
-  if (privacy::ExceptionOccurred()) {
+  if (privacy::cbr::ExceptionOccurred()) {
     NOTREACHED();
     return "";
   }
 
   TokenPreimage token_preimage = unblinded_token.value.preimage();
-  if (privacy::ExceptionOccurred()) {
+  if (privacy::cbr::ExceptionOccurred()) {
     NOTREACHED();
     return "";
   }
 
   const std::string token_preimage_base64 = token_preimage.encode_base64();
-  if (privacy::ExceptionOccurred()) {
+  if (privacy::cbr::ExceptionOccurred()) {
     NOTREACHED();
     return "";
   }

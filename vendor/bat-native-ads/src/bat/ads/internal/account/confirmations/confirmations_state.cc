@@ -384,7 +384,7 @@ bool ConfirmationsState::GetFailedConfirmationsFromDictionary(
     }
     confirmation.unblinded_token.value =
         UnblindedToken::decode_base64(*unblinded_token_base64);
-    if (privacy::ExceptionOccurred()) {
+    if (privacy::cbr::ExceptionOccurred()) {
       BLOG(0, "Invalid unblinded token");
       NOTREACHED();
       continue;
@@ -399,7 +399,7 @@ bool ConfirmationsState::GetFailedConfirmationsFromDictionary(
     }
     confirmation.unblinded_token.public_key =
         PublicKey::decode_base64(*public_key_base64);
-    if (privacy::ExceptionOccurred()) {
+    if (privacy::cbr::ExceptionOccurred()) {
       BLOG(0, "Invalid public key");
       NOTREACHED();
       continue;

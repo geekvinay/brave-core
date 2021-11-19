@@ -34,7 +34,7 @@
 
 namespace ads {
 
-Account::Account(privacy::TokenGeneratorInterface* token_generator)
+Account::Account(privacy::cbr::TokenGeneratorInterface* token_generator)
     : issuers_(std::make_unique<Issuers>()),
       confirmations_(std::make_unique<Confirmations>(token_generator)),
       redeem_unblinded_payment_tokens_(
