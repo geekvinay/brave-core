@@ -103,6 +103,7 @@ class Account final : public ConfirmationsObserver,
   // ConfirmationsObserver:
   void OnDidConfirm(const ConfirmationInfo& confirmation) override;
   void OnFailedToConfirm(const ConfirmationInfo& confirmation) override;
+  void OnIssuersOutOfDate() override;
 
   // RedeemUnblindedPaymentTokensDelegate:
   void OnDidRedeemUnblindedPaymentTokens(
