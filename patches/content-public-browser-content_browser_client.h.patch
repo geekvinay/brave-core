@@ -1,8 +1,26 @@
 diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
-index 7dfc30f346a9420be631c466ffa2d8b8adabf556..68aea47e27b7622b19be228ce0ccad67816b5f6d 100644
+index 7dfc30f346a9420be631c466ffa2d8b8adabf556..1fde1ff4b2d0bce404496594d0a1713c71b97d2f 100644
 --- a/content/public/browser/content_browser_client.h
 +++ b/content/public/browser/content_browser_client.h
-@@ -1908,6 +1908,7 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -756,6 +756,17 @@ class CONTENT_EXPORT ContentBrowserClient {
+       BrowserContext* browser_context,
+       const std::vector<GlobalRenderFrameHostId>& render_frames);
+ 
++  // Allow the embedder to control if access to privileged functions that could
++  // be used by fingerprinting by a shared worker is allowed.
++  virtual bool AllowWorkerFingerprinting(
++      const GURL& url,
++      BrowserContext* browser_context,
++      const std::vector<GlobalRenderFrameHostId>& render_frames);
++  virtual uint8_t WorkerGetBraveFarblingLevel(
++      const GURL& url,
++      BrowserContext* browser_context,
++      const std::vector<GlobalRenderFrameHostId>& render_frames);
++
+   // Allow the embedder to control if access to CacheStorage by a shared worker
+   // is allowed.
+   virtual bool AllowWorkerCacheStorage(
+@@ -1908,6 +1919,7 @@ class CONTENT_EXPORT ContentBrowserClient {
    virtual ui::AXMode GetAXModeForBrowserContext(
        BrowserContext* browser_context);
  

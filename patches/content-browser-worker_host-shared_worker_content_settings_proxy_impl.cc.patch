@@ -1,0 +1,27 @@
+diff --git a/content/browser/worker_host/shared_worker_content_settings_proxy_impl.cc b/content/browser/worker_host/shared_worker_content_settings_proxy_impl.cc
+index 5f11b44d8f218a58f8745919e8c6bbc43d169f85..f41d6ce5e0e3cd49a8be07cff1ae95ef722afc6b 100644
+--- a/content/browser/worker_host/shared_worker_content_settings_proxy_impl.cc
++++ b/content/browser/worker_host/shared_worker_content_settings_proxy_impl.cc
+@@ -59,4 +59,22 @@ void SharedWorkerContentSettingsProxyImpl::RequestFileSystemAccessSync(
+   }
+ }
+ 
++void SharedWorkerContentSettingsProxyImpl::AllowFingerprinting(
++    AllowFingerprintingCallback callback) {
++  if (!origin_.opaque()) {
++    owner_->AllowFingerprinting(origin_.GetURL(), std::move(callback));
++  } else {
++    std::move(callback).Run(false);
++  }
++}
++
++void SharedWorkerContentSettingsProxyImpl::GetBraveFarblingLevel(
++    GetBraveFarblingLevelCallback callback) {
++  if (!origin_.opaque()) {
++    owner_->GetBraveFarblingLevel(origin_.GetURL(), std::move(callback));
++  } else {
++    std::move(callback).Run(1 /* OFF */);
++  }
++}
++
+ }  // namespace content
