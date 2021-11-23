@@ -517,7 +517,11 @@ void BraveWalletServiceDelegateImpl::FireActiveOriginChanged() {
 
 std::string BraveWalletServiceDelegateImpl::GetActiveOriginInternal() {
   content::WebContents* contents = GetActiveWebContents();
-  return contents ? contents->GetMainFrame()->GetLastCommittedURL().spec() : "";
+  return contents ? contents->GetMainFrame()
+                        ->GetLastCommittedURL()
+                        .DeprecatedGetOriginAsURL()
+                        .spec()
+                  : "";
 }
 
 void BraveWalletServiceDelegateImpl::GetActiveOrigin(
