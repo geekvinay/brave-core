@@ -1,13 +1,14 @@
 diff --git a/third_party/blink/public/mojom/worker/worker_content_settings_proxy.mojom b/third_party/blink/public/mojom/worker/worker_content_settings_proxy.mojom
-index b2629579ad0c02eafb44ff0d62f0ad4c74d96b38..d7f022cf62a86399caa8cf8c6244a74ef1d8dae3 100644
+index b2629579ad0c02eafb44ff0d62f0ad4c74d96b38..7b1f8b488cd3fdcd90b8e66cd82974181719e266 100644
 --- a/third_party/blink/public/mojom/worker/worker_content_settings_proxy.mojom
 +++ b/third_party/blink/public/mojom/worker/worker_content_settings_proxy.mojom
-@@ -28,4 +28,8 @@ interface WorkerContentSettingsProxy {
+@@ -28,4 +28,9 @@ interface WorkerContentSettingsProxy {
    // Returns whether the worker is allowed access to the file system.
    [Sync]
    RequestFileSystemAccessSync() => (bool result);
 +
 +  // Returns whether the worker is allowed access to privileged functions that could be used for fingerprinting.
++  [Sync]
 +  AllowFingerprinting() => (bool result);
 +  GetBraveFarblingLevel() => (uint8 result);
  };
