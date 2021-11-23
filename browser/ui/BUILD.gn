@@ -119,6 +119,10 @@ source_set("ui") {
       "webui/settings/brave_wallet_handler.h",
       "webui/settings/default_brave_shields_handler.cc",
       "webui/settings/default_brave_shields_handler.h",
+      "webui/brave_shields/shields_panel_handler.cc",
+      "webui/brave_shields/shields_panel_handler.h",
+      "webui/brave_shields/shields_panel_ui.cc",
+      "webui/brave_shields/shields_panel_ui.h",
     ]
 
     if (is_mac) {
@@ -260,6 +264,8 @@ source_set("ui") {
     "//brave/components/brave_rewards/resources:tip_generated_resources",
     "//brave/components/brave_search/common",
     "//brave/components/brave_shields/browser",
+    "//brave/components/brave_shields/common:mojom",
+    "//brave/components/brave_shields/resources/panel:brave_shields_panel_generated",
     "//brave/components/brave_vpn/buildflags",
     "//brave/components/brave_wayback_machine:buildflags",
     "//brave/components/cosmetic_filters/resources/data:generated_resources",
@@ -292,6 +298,7 @@ source_set("ui") {
     "//components/sessions",
     "//content/public/browser",
     "//content/public/common",
+    "//mojo/public/cpp/bindings",
     "//services/network/public/cpp",
     "//skia",
     "//third_party/abseil-cpp:absl",
@@ -299,6 +306,7 @@ source_set("ui") {
     "//ui/base",
     "//ui/gfx",
     "//ui/resources",
+    "//ui/webui:webui",
     "//url",
   ]
 

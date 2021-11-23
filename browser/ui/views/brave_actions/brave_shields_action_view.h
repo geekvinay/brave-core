@@ -8,11 +8,13 @@
 
 #include <memory>
 
+#include "brave/browser/ui/webui/brave_shields/shields_panel_ui.h"
+#include "chrome/browser/ui/views/bubble/webui_bubble_manager.h"
 #include "ui/views/controls/button/label_button.h"
 
 class BraveShieldsActionView : public views::LabelButton {
  public:
-  BraveShieldsActionView();
+  explicit BraveShieldsActionView(Profile* profile);
   BraveShieldsActionView(const BraveShieldsActionView&) = delete;
   BraveShieldsActionView& operator=(const BraveShieldsActionView&) = delete;
   ~BraveShieldsActionView() override;
@@ -26,6 +28,8 @@ class BraveShieldsActionView : public views::LabelButton {
   SkPath GetHighlightPath() const;
 
  private:
+  std::unique_ptr<WebUIBubbleManagerT<ShieldsPanelUI>> webui_bubble_manager_;
+  Profile* profile_ = nullptr;
   void ButtonPressed();
 };
 

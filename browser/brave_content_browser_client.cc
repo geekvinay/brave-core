@@ -190,6 +190,11 @@ using extensions::ChromeContentBrowserClientExtensionsPart;
 #include "brave/browser/brave_ads/brave_ads_host.h"
 #endif  // defined(OS_ANDROID)
 
+#if !defined(OS_ANDROID)
+#include "brave/browser/ui/webui/brave_shields/shields_panel_ui.h"
+#include "brave/components/brave_shields/common/brave_shields_panel.mojom.h"
+#endif
+
 namespace {
 
 bool HandleURLReverseOverrideRewrite(GURL* url,
@@ -446,6 +451,11 @@ void BraveContentBrowserClient::RegisterBrowserInterfaceBindersForFrame(
       brave_wallet::mojom::PanelHandlerFactory, WalletPanelUI>(map);
   chrome::internal::RegisterWebUIControllerInterfaceBinder<
       brave_wallet::mojom::PageHandlerFactory, WalletPageUI>(map);
+  if (base::FeatureList::IsEnabled(
+          brave_shields::features::kBraveShieldsPanelV2)) {
+    chrome::internal::RegisterWebUIControllerInterfaceBinder<
+        brave_shields_panel::mojom::PanelHandlerFactory, ShieldsPanelUI>(map);
+  }
 #endif
 #if BUILDFLAG(ENABLE_BRAVE_VPN) && !defined(OS_ANDROID)
   if (brave_vpn::IsBraveVPNEnabled()) {

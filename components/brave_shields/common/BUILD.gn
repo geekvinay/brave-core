@@ -14,12 +14,20 @@ static_library("common") {
   deps = [
     "//base",
     "//components/content_settings/core/common",
+    "//brave/components/resources:strings",
     "//url",
+    "//ui/base",
   ]
 }
 
 mojom("mojom") {
-  sources = [ "brave_shields.mojom" ]
+  sources = [
+    "brave_shields.mojom",
+    "brave_shields_panel.mojom",
+  ]
 
-  deps = [ "//mojo/public/mojom/base" ]
+  public_deps = [
+    "//mojo/public/mojom/base",
+    "//url/mojom:url_mojom_gurl",
+  ]
 }
