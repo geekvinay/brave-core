@@ -59,15 +59,14 @@ BraveShieldsWebContentsObserver* g_receiver_impl_for_testing = nullptr;
 // npm run test -- brave_browser_tests
 // --filter=BraveContentSettingsAgentImplBrowserTest.*
 void UpdateContentSettingsToRendererFrames(content::WebContents* web_contents) {
-  web_contents->GetMainFrame()->ForEachRenderFrameHost(
+  web_contents->ForEachRenderFrameHost(
       base::BindRepeating([](content::RenderFrameHost* frame) {
         content::WebContents* web_contents =
             WebContents::FromRenderFrameHost(frame);
         DCHECK(web_contents);
 
-        Profile* profile =
-            Profile::FromBrowserContext(web_contents->GetBrowserContext());
-        const auto* map = HostContentSettingsMapFactory::GetForProfile(profile);
+        const auto* map = HostContentSettingsMapFactory::GetForProfile(
+            frame->GetBrowserContext());
 
         RendererContentSettingRules rules;
         GetRendererContentSettingRules(map, &rules);
