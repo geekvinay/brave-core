@@ -8,7 +8,7 @@ import { LEDGER_HARDWARE_VENDOR, TREZOR_HARDWARE_VENDOR } from 'gen/brave/compon
 import { HardwareVendor } from 'components/brave_wallet_ui/common/api/getKeyringsByType'
 
 export const HardwareWalletDerivationPathLocaleMapping = {
-  [LedgerDerivationPaths.LedgerLive]: 'Ledger Live',
+  [LedgerDerivationPaths.LedgerLive]: 'Filecoin',
   [LedgerDerivationPaths.Legacy]: 'Legacy (MEW/MyCrypto)',
   [TrezorDerivationPaths.Default]: 'Default'
 }

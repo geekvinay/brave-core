@@ -7,79 +7,97 @@ import { LEDGER_HARDWARE_VENDOR } from 'gen/brave/components/brave_wallet/common
 import {
   LedgerProvider, TransportWrapper
 } from '@glif/filecoin-wallet-provider'
-import Transport from '@ledgerhq/hw-transport';
-import { CoinType } from '@glif/filecoin-address';
-import { LedgerKeyring } from '../hardwareKeyring';
-import { HardwareVendor } from '../../api/getKeyringsByType';
-import { GetAccountsHardwareOperationResult, HardwareOperationResult, SignHardwareMessageOperationResult, SignHardwareTransactionOperationResult } from '../../hardware_operations';
-import { hardwareDeviceIdFromAddress } from '../hardwareDeviceIdFromAddress';
+import { CoinType } from '@glif/filecoin-address'
+import { LedgerKeyring } from '../hardwareKeyring'
+import { HardwareVendor, SupportedCoins } from '../../api/getKeyringsByType'
+import {
+  GetAccountsHardwareOperationResult,
+  HardwareOperationResult,
+  SignHardwareMessageOperationResult,
+  SignHardwareTransactionOperationResult
+} from '../../hardware_operations'
 
 export default class FileCoinLedgerKeyring extends LedgerKeyring {
   constructor () {
     super()
   }
-  private coinType: CoinType = CoinType.MAIN
-  private deviceId: string
-  
-  coin = () => {
-    return this.coinType
-  }
 
+  private deviceId: string
   private provider?: LedgerProvider
+
+  coin = (): SupportedCoins => {
+    return SupportedCoins.FILECOIN
+  }
 
   type = (): HardwareVendor => {
     return LEDGER_HARDWARE_VENDOR
   }
 
   getAccounts = async (from: number, to: number, scheme: string): Promise<GetAccountsHardwareOperationResult> => {
-    console.log(await this.provider?.getAccounts(0, 1, CoinType.MAIN))
-    return { success: false }
+    const unlocked = await this.unlock()
+    if (!unlocked.success || !this.provider) {
+      return unlocked
+    }
+    from = (from < 0) ? 0 : from
+    const app: LedgerProvider = this.provider
+    const accounts = await app.getAccounts(from, to, CoinType.MAIN)
+    const result = []
+    for (let i = 0; i < accounts.length; i++) {
+      result.push({
+        address: accounts[i],
+        derivationPath: (from + i).toString(),
+        name: 'Filecoin ' + this.type(),
+        hardwareVendor: this.type(),
+        deviceId: this.deviceId,
+        coin: this.coin()
+      })
+    }
+    return { success: true, payload: [...result] }
   }
+
   isUnlocked = () => {
     return this.provider !== undefined
-  }
-
-  makeApp = async (transport: Transport) => {
-    try {
-      this.provider = new LedgerProvider({
-        transport: transport,
-        minLedgerVersion: {
-          major: 1,
-          minor: 0,
-          patch: 0
-        }
-      })
-
-      await this.provider.ready()
-    } catch(e) {
-      console.log(e)
-    }
   }
 
   unlock = async (): Promise<HardwareOperationResult> => {
     if (this.provider) {
       return { success: true }
     }
-    const transportWrapper = new TransportWrapper()
-    await this.makeApp(transportWrapper.transport)
-    if (!this.provider) {
-      return { success: false }
+    try {
+      console.log('unlock')
+      const transportWrapper = new TransportWrapper()
+      await transportWrapper.connect()
+      this.provider = new LedgerProvider({
+        transport: transportWrapper.transport,
+        minLedgerVersion: {
+          major: 0,
+          minor: 0,
+          patch: 1
+        }
+      })
+      await this.provider.ready()
+      if (!this.provider) {
+        return { success: false }
+      }
+
+      const app: LedgerProvider = this.provider
+      const address = await app.getAccounts(0, 1, CoinType.MAIN)
+      console.log(address)
+      this.deviceId = address[0]
+      transportWrapper.transport.on('disconnect', this.onDisconnected)
+      return { success: this.isUnlocked() }
+    } catch (e) {
+      console.log('unlock:', e)
+      return { success: false, error: e.message, code: e.statusCode || e.id || e.name }
     }
-
-    transportWrapper.transport.on('disconnect', this.onDisconnected)
-    const app: LedgerProvider = this.provider
-    const address = app.getAccounts(0, 1, this.coin() as CoinType)
-    console.log(address)
-    this.deviceId = await hardwareDeviceIdFromAddress(address[0])
-    console.log(this.deviceId)
-    return { success: this.isUnlocked() }
-
   }
-  signPersonalMessage(path: string, address: string, message: string): Promise<SignHardwareMessageOperationResult> {
-    throw new Error('Method not implemented.');
+
+  signPersonalMessage (path: string, address: string, message: string): Promise<SignHardwareMessageOperationResult> {
+    throw new Error('Method not implemented.')
   }
-  signTransaction(path: string, rawTxHex: string): Promise<SignHardwareTransactionOperationResult> {
-    throw new Error('Method not implemented.');
+
+  signTransaction (path: string, rawTxHex: string): Promise<SignHardwareTransactionOperationResult> {
+    throw new Error('Method not implemented.')
   }
 
   private onDisconnected = (e: any) => {
