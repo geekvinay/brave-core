@@ -1,6 +1,11 @@
 import { EthereumSignedTx } from 'trezor-connect/lib/typescript'
 import { HardwareWalletAccount, HardwareWalletErrorType } from './hardware/types'
 
+export enum HardwareCoins {
+  FILECOIN = 'f',
+  ETH = 'e'
+}
+
 export interface SignHardwareTransactionType {
   success: boolean
   error?: string

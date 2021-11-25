@@ -11,6 +11,7 @@ import { getLocale } from '../../../../common/locale'
 import { hardwareDeviceIdFromAddress } from '../hardwareDeviceIdFromAddress'
 import {
   GetAccountsHardwareOperationResult,
+  HardwareCoins,
   SignatureVRS,
   SignHardwareMessageOperationResult,
   SignHardwareTransactionOperationResult
@@ -26,14 +27,17 @@ export default class LedgerBridgeKeyring extends LedgerKeyring {
   constructor () {
     super()
   }
-
+  private coinType: HardwareCoins = HardwareCoins.ETH
   private app?: Eth
   private deviceId: string
 
+  coin = () => {
+    return this.coinType
+  }
+  
   type = (): HardwareVendor => {
     return LEDGER_HARDWARE_VENDOR
   }
-
   getAccounts = async (from: number, to: number, scheme: string): Promise<GetAccountsHardwareOperationResult> => {
     const unlocked = await this.unlock()
     if (!unlocked.success || !this.app) {
