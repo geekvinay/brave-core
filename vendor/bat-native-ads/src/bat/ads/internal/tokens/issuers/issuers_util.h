@@ -10,6 +10,11 @@
 
 #include "bat/ads/internal/tokens/issuers/issuer_types.h"
 
+namespace absl {
+template <typename T>
+class optional;
+}  // namespace absl
+
 namespace ads {
 
 struct IssuersInfo;
@@ -24,7 +29,8 @@ bool IssuerExistsForType(const IssuerType issuer_type);
 bool PublicKeyExistsForIssuerType(const IssuerType issuer_type,
                                   const std::string& public_key);
 
-double GetSmallestDenominationForIssuerType(const IssuerType issuer_type);
+absl::optional<double> GetSmallestDenominationForIssuerType(
+    const IssuerType issuer_type);
 
 }  // namespace ads
 

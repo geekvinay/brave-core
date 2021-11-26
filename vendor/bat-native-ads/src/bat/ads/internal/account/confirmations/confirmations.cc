@@ -33,6 +33,7 @@
 #include "bat/ads/internal/tokens/redeem_unblinded_token/redeem_unblinded_token.h"
 #include "bat/ads/internal/tokens/redeem_unblinded_token/user_data/confirmation_dto_user_data_builder.h"
 #include "bat/ads/transaction_info.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace ads {
 
@@ -178,10 +179,17 @@ ConfirmationInfo Confirmations::CreateConfirmation(
 
 privacy::cbr::TokenList Confirmations::GenerateTokensForValue(
     const double value) const {
-  const double smallest_denomination =
+  int token_count = 1;
+
+  const absl::optional<double> smallest_denomination_optional =
       GetSmallestDenominationForIssuerType(IssuerType::kPayments);
 
-  const int token_count = static_cast<int>(ceil(value / smallest_denomination));
+  if (value > 0.0 && smallest_denomination_optional) {
+    const double smallest_denomination =
+        smallest_denomination_optional.value();
+
+    token_count = static_cast<int>(ceil(value / smallest_denomination));
+  }
 
   return token_generator_->Generate(token_count);
 }

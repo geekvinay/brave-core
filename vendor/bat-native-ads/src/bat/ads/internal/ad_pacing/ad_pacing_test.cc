@@ -75,15 +75,15 @@ class BatAdsAdPacingTest : public UnitTestBase {
               "publicKeys": [
                 {
                   "publicKey": "JiwFR2EU/Adf1lgox+xqOVPuc6a/rxdy/LguFG5eaXg=",
-                  "associatedValue": "0.1"
+                  "associatedValue": "0.0"
                 },
                 {
                   "publicKey": "XgxwreIbLMu0IIFVk4TKEce6RduNVXngDmU3uixly0M=",
-                  "associatedValue": "0.2"
+                  "associatedValue": "0.1"
                 },
                 {
                   "publicKey": "bPE1QE65mkIgytffeu7STOfly+x10BXCGuk5pVlOHQU=",
-                  "associatedValue": "0.3"
+                  "associatedValue": "0.2"
                 }
               ]
             }

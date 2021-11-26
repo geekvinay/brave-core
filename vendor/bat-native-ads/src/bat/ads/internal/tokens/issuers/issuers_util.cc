@@ -13,6 +13,7 @@
 #include "bat/ads/internal/tokens/issuers/issuer_info_aliases.h"
 #include "bat/ads/internal/tokens/issuers/issuers_info.h"
 #include "bat/ads/pref_names.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace ads {
 
@@ -89,11 +90,12 @@ bool PublicKeyExistsForIssuerType(const IssuerType issuer_type,
   return PublicKeyExists(issuer, public_key);
 }
 
-double GetSmallestDenominationForIssuerType(const IssuerType issuer_type) {
+absl::optional<double> GetSmallestDenominationForIssuerType(
+    const IssuerType issuer_type) {
   const absl::optional<IssuerInfo>& issuer_optional =
       GetIssuerForType(issuer_type);
   if (!issuer_optional) {
-    return 0.0;
+    return absl::nullopt;
   }
   const IssuerInfo& issuer = issuer_optional.value();
 
@@ -105,7 +107,7 @@ double GetSmallestDenominationForIssuerType(const IssuerType issuer_type) {
                          return lhs.second < rhs.second && lhs.second > 0.0;
                        });
   if (iter == public_keys.end()) {
-    return 0.0;
+    return absl::nullopt;
   }
 
   return iter->second;

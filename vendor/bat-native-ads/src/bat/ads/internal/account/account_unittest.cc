@@ -183,15 +183,15 @@ TEST_F(BatAdsAccountTest, GetIssuersIfAdsAreEnabled) {
               "publicKeys": [
                 {
                   "publicKey": "JiwFR2EU/Adf1lgox+xqOVPuc6a/rxdy/LguFG5eaXg=",
-                  "associatedValue": "0.1"
+                  "associatedValue": "0.0"
                 },
                 {
                   "publicKey": "XgxwreIbLMu0IIFVk4TKEce6RduNVXngDmU3uixly0M=",
-                  "associatedValue": "0.2"
+                  "associatedValue": "0.1"
                 },
                 {
                   "publicKey": "bPE1QE65mkIgytffeu7STOfly+x10BXCGuk5pVlOHQU=",
-                  "associatedValue": "0.3"
+                  "associatedValue": "0.2"
                 }
               ]
             }
@@ -211,9 +211,9 @@ TEST_F(BatAdsAccountTest, GetIssuersIfAdsAreEnabled) {
       BuildIssuers(7200000,
                    {{"JsvJluEN35bJBgJWTdW/8dAgPrrTM1I1pXga+o7cllo=", 0.0},
                     {"crDVI1R6xHQZ4D9cQu4muVM5MaaM1QcOT4It8Y/CYlw=", 0.0}},
-                   {{"JiwFR2EU/Adf1lgox+xqOVPuc6a/rxdy/LguFG5eaXg=", 0.1},
-                    {"XgxwreIbLMu0IIFVk4TKEce6RduNVXngDmU3uixly0M=", 0.2},
-                    {"bPE1QE65mkIgytffeu7STOfly+x10BXCGuk5pVlOHQU=", 0.3}});
+                   {{"JiwFR2EU/Adf1lgox+xqOVPuc6a/rxdy/LguFG5eaXg=", 0.0},
+                    {"XgxwreIbLMu0IIFVk4TKEce6RduNVXngDmU3uixly0M=", 0.1},
+                    {"bPE1QE65mkIgytffeu7STOfly+x10BXCGuk5pVlOHQU=", 0.2}});
 
   EXPECT_EQ(expected_issuers, issuers);
 }
@@ -246,15 +246,15 @@ TEST_F(BatAdsAccountTest, DoNotGetIssuersIfAdsAreDisabled) {
               "publicKeys": [
                 {
                   "publicKey": "JiwFR2EU/Adf1lgox+xqOVPuc6a/rxdy/LguFG5eaXg=",
-                  "associatedValue": "0.1"
+                  "associatedValue": "0.0"
                 },
                 {
                   "publicKey": "XgxwreIbLMu0IIFVk4TKEce6RduNVXngDmU3uixly0M=",
-                  "associatedValue": "0.2"
+                  "associatedValue": "0.1"
                 },
                 {
                   "publicKey": "bPE1QE65mkIgytffeu7STOfly+x10BXCGuk5pVlOHQU=",
-                  "associatedValue": "0.3"
+                  "associatedValue": "0.2"
                 }
               ]
             }

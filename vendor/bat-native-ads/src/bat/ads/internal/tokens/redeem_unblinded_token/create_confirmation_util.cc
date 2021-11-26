@@ -46,10 +46,13 @@ std::string CreateConfirmationRequestDTO(const ConfirmationInfo& confirmation) {
   }
   dto.SetKey("blindedPaymentTokens", std::move(blinded_payment_token_list));
 
-  const double smallest_denomination =
+  const absl::optional<double> smallest_denomination_optional =
       GetSmallestDenominationForIssuerType(IssuerType::kPayments);
-  dto.SetKey("lowestValue",
-             base::Value(base::NumberToString(smallest_denomination)));
+  if (smallest_denomination_optional) {
+    const double smallest_denomination = smallest_denomination_optional.value();
+    dto.SetKey("lowestValue",
+              base::Value(base::NumberToString(smallest_denomination)));
+  }
 
   const std::string type = std::string(confirmation.type);
   dto.SetKey("type", base::Value(type));
