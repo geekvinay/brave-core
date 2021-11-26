@@ -99,10 +99,11 @@ double GetSmallestDenominationForIssuerType(const IssuerType issuer_type) {
 
   const PublicKeyList& public_keys = issuer.public_keys;
 
-  const auto iter = std::min_element(
-      std::begin(public_keys), std::end(public_keys),
-      [](const auto& lhs, const auto& rhs) {
-            return lhs.second < rhs.second && lhs.second > 0.0; });
+  const auto iter =
+      std::min_element(std::begin(public_keys), std::end(public_keys),
+                       [](const auto& lhs, const auto& rhs) {
+                         return lhs.second < rhs.second && lhs.second > 0.0;
+                       });
   if (iter == public_keys.end()) {
     return 0.0;
   }
