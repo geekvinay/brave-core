@@ -63,7 +63,6 @@ using brave_shields::features::kBraveExtensionNetworkBlocking;
 using brave_shields::features::kCosmeticFilteringSyncLoad;
 
 using debounce::features::kBraveDebounce;
-using ntp_background_images::features::kBraveNTPBrandedWallpaper;
 using ntp_background_images::features::kBraveNTPBrandedWallpaperDemo;
 using ntp_background_images::features::kBraveNTPSuperReferralWallpaper;
 
@@ -375,10 +374,6 @@ constexpr char kFileSystemAccessAPIDescription[] =
      flag_descriptions::kUseDevUpdaterUrlName,                              \
      flag_descriptions::kUseDevUpdaterUrlDescription, kOsAll,               \
      FEATURE_VALUE_TYPE(brave_component_updater::kUseDevUpdaterUrl)},       \
-    {"brave-ntp-branded-wallpaper",                                         \
-     flag_descriptions::kBraveNTPBrandedWallpaperName,                      \
-     flag_descriptions::kBraveNTPBrandedWallpaperDescription, kOsAll,       \
-     FEATURE_VALUE_TYPE(kBraveNTPBrandedWallpaper)},                        \
     {"brave-ntp-branded-wallpaper-demo",                                    \
      flag_descriptions::kBraveNTPBrandedWallpaperDemoName,                  \
      flag_descriptions::kBraveNTPBrandedWallpaperDemoDescription, kOsAll,   \
